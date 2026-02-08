@@ -18,5 +18,11 @@ app.use("/api", require("./routes/aiRoutes"));
 app.use("/api/payment", require("./routes/paymentRoutes"));
 app.use("/api/quiz", require("./routes/quizRoutes"));
 app.use("/api", require("./routes/contactRoutes"));
+app.use(
+  cors({
+    origin: "https://digital-edu-frontend.vercel.app",
+    credentials: true,
+  }),
+);
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
