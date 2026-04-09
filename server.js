@@ -22,11 +22,13 @@ connectDB();
 // static
 app.use("/certificates", express.static(path.join(__dirname, "certificates")));
 
-// ✅ ADD THIS ROUTE
+//  ADD THIS ROUTE
 app.get("/api/health", (req, res) => {
-  res.json({ success: true, message: "Backend is running 🚀" });
+  res.json({ success: true, message: "Backend is running " });
 });
-
+app.get("/", (req, res) => {
+  res.send("Backend is running ");
+});
 // routes
 app.use("/api/certificate", require("./routes/certificateRoutes"));
 app.use("/api/auth", require("./routes/authRoutes"));
