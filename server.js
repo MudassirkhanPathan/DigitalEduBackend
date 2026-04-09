@@ -30,12 +30,30 @@ app.get("/", (req, res) => {
   res.send("Backend is running ");
 });
 // routes
-app.use("/api/certificate", require("./routes/certificateRoutes"));
-app.use("/api/auth", require("./routes/authRoutes"));
-app.use("/api", require("./routes/aiRoutes"));
-app.use("/api/payment", require("./routes/paymentRoutes"));
-app.use("/api/quiz", require("./routes/quizRoutes"));
-app.use("/api", require("./routes/contactRoutes"));
+app.use(
+  "https://digitaledubackend.onrender.com/api/certificate",
+  require("./routes/certificateRoutes"),
+);
+app.use(
+  "https://digitaledubackend.onrender.com/api/auth",
+  require("./routes/authRoutes"),
+);
+app.use(
+  "https://digitaledubackend.onrender.com/api",
+  require("./routes/aiRoutes"),
+);
+app.use(
+  "https://digitaledubackend.onrender.com/api/payment",
+  require("./routes/paymentRoutes"),
+);
+app.use(
+  "https://digitaledubackend.onrender.com/api/quiz",
+  require("./routes/quizRoutes"),
+);
+app.use(
+  "https://digitaledubackend.onrender.com/api",
+  require("./routes/contactRoutes"),
+);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
