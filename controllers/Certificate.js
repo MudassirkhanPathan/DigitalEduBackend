@@ -12,13 +12,15 @@ const generateCertificate = async (req, res) => {
   }
 
   const dir = path.join(__dirname, "../certificates");
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
 
   const fileName = `${studentName}_${subject}_${Date.now()}.pdf`;
   const filePath = path.join(dir, fileName);
 
   // HTML Template
-  const htmlContent = `
+const htmlContent = `
 <html>
   <head>
     <style>
@@ -141,7 +143,10 @@ const generateCertificate = async (req, res) => {
 `;
 
   try {
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      headless: true,
+    });
     const page = await browser.newPage();
 
     await page.setContent(htmlContent, { waitUntil: "networkidle0" });
