@@ -15,9 +15,9 @@ const askAI = async (req, res) => {
     if (!process.env.GEMINI_API_KEY) {
       return res.status(500).json({ message: "API key missing" });
     }
-
+    console.log("API KEY:", process.env.GEMINI_API_KEY);
     const response = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
         contents: [
           {
@@ -28,7 +28,7 @@ const askAI = async (req, res) => {
       },
       {
         headers: { "Content-Type": "application/json" },
-        timeout: 10000, // ✅ timeout added (10 sec)
+        timeout: 10000, //  timeout added (10 sec)
       },
     );
 
