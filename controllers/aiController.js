@@ -28,7 +28,7 @@ const askAI = async (req, res) => {
       },
       {
         headers: { "Content-Type": "application/json" },
-        timeout: 10000, // ✅ timeout added (10 sec)
+        timeout: 10000, //  timeout added (10 sec)
       },
     );
 
