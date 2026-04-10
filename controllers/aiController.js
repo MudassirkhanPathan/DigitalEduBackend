@@ -17,7 +17,7 @@ const askAI = async (req, res) => {
     }
     console.log("API KEY:", process.env.GEMINI_API_KEY);
     const response = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
         contents: [
           {
