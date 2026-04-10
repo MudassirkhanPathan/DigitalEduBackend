@@ -19,11 +19,11 @@ const generateCertificate = async (req, res) => {
     const stream = fs.createWriteStream(filePath);
     doc.pipe(stream);
 
-    const W = doc.page.width;
-    const H = doc.page.height;
+    const W = doc.page.width; // 841.89
+    const H = doc.page.height; // 595.28
     const cx = W / 2;
 
-    // ── Current Date ────────────────────────────────────
+    // current date
     const months = [
       "January",
       "February",
@@ -42,37 +42,34 @@ const generateCertificate = async (req, res) => {
     const currentDate = `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
 
     // ── Background ──────────────────────────────────────
-    doc.rect(0, 0, W, H).fill("#fffef5");
+    doc.rect(0, 0, W, H).fill("#fffdf0");
 
-    // ── Outer thick gold border ─────────────────────────
+    // ── Outer border ────────────────────────────────────
     doc
       .rect(14, 14, W - 28, H - 28)
       .lineWidth(4)
       .strokeColor("#B8860B")
       .stroke();
 
-    // ── Inner thin borders ──────────────────────────────
+    // ── Inner outline ────────────────────────────────────
     doc
-      .rect(24, 24, W - 48, H - 48)
-      .lineWidth(1.2)
+      .rect(26, 26, W - 52, H - 52)
+      .lineWidth(1)
       .strokeColor("#DAA520")
       .stroke();
     doc
       .rect(32, 32, W - 64, H - 64)
-      .lineWidth(0.5)
+      .lineWidth(0.4)
       .strokeColor("#C9A84C")
       .stroke();
 
-    // ── Corner L-bracket accents ────────────────────────
-    const brackets = [
-      [14, 14],
-      [W - 14, 14],
-      [14, H - 14],
-      [W - 14, H - 14],
-    ];
-    brackets.forEach(([bx, by], i) => {
-      const sx = i % 2 === 0 ? 1 : -1;
-      const sy = i < 2 ? 1 : -1;
+    // ── Corner L-brackets ───────────────────────────────
+    [
+      [14, 14, 1, 1],
+      [W - 14, 14, -1, 1],
+      [14, H - 14, 1, -1],
+      [W - 14, H - 14, -1, -1],
+    ].forEach(([bx, by, sx, sy]) => {
       doc
         .moveTo(bx, by)
         .lineTo(bx + sx * 55, by)
@@ -85,246 +82,290 @@ const generateCertificate = async (req, res) => {
         .lineWidth(4)
         .strokeColor("#B8860B")
         .stroke();
-      doc
-        .polygon(
-          [bx + sx * 8, by + sy * 8],
-          [bx + sx * 16, by + sy * 8],
-          [bx + sx * 8, by + sy * 16],
-        )
-        .fill("#DAA520");
     });
 
-    // ── Subtle watermark star ───────────────────────────
-    doc.save().opacity(0.06);
-    const R = 170,
-      r = 80,
-      sp = 8;
-    const pts = [];
-    for (let i = 0; i < sp * 2; i++) {
-      const a = (i * Math.PI) / sp - Math.PI / 2;
-      const rad = i % 2 === 0 ? R : r;
-      pts.push([cx + rad * Math.cos(a), H / 2 + rad * Math.sin(a)]);
-    }
-    doc.moveTo(pts[0][0], pts[0][1]);
-    pts.slice(1).forEach(([x, y]) => doc.lineTo(x, y));
-    doc.closePath().fill("#DAA520");
+    // ── Watermark text ───────────────────────────────────
+    doc
+      .save()
+      .rotate(-15, { origin: [cx, H / 2] })
+      .fillColor("#DAA520")
+      .opacity(0.045)
+      .fontSize(110)
+      .font("Helvetica-Bold")
+      .text("EDU NOVA", 0, H / 2 - 55, { align: "center" });
     doc.restore();
 
-    // ── Seal circle at top ──────────────────────────────
-    const sealY = 96;
-    doc.circle(cx, sealY, 42).lineWidth(2).fillAndStroke("#fdf6e0", "#DAA520");
+    // ── Top seal circle ──────────────────────────────────
+    const sealY = 80;
     doc
-      .circle(cx, sealY, 34)
+      .circle(cx, sealY, 36)
+      .lineWidth(2.5)
+      .fillAndStroke("#fdf3c8", "#DAA520");
+    doc
+      .circle(cx, sealY, 28)
       .lineWidth(0.8)
-      .fillAndStroke("#fffef5", "#C9A84C");
-    // Star inside seal
-    const starPts = [];
-    for (let i = 0; i < 10; i++) {
-      const a = (i * Math.PI) / 5 - Math.PI / 2;
-      const rad = i % 2 === 0 ? 24 : 11;
-      starPts.push([cx + rad * Math.cos(a), sealY + rad * Math.sin(a)]);
-    }
-    doc.moveTo(starPts[0][0], starPts[0][1]);
-    starPts.slice(1).forEach(([x, y]) => doc.lineTo(x, y));
-    doc.closePath().fill("#DAA520");
-    doc.circle(cx, sealY, 6).fill("#fffef5");
+      .fillAndStroke("#fffdf0", "#C9A84C");
 
-    // ── CERTIFICATE heading ─────────────────────────────
+    // star inside seal
+    const star = (px, py, R, r, pts) => {
+      const p = [];
+      for (let i = 0; i < pts * 2; i++) {
+        const a = (i * Math.PI) / pts - Math.PI / 2;
+        p.push([
+          px + (i % 2 === 0 ? R : r) * Math.cos(a),
+          py + (i % 2 === 0 ? R : r) * Math.sin(a),
+        ]);
+      }
+      doc.moveTo(p[0][0], p[0][1]);
+      p.slice(1).forEach(([x, y]) => doc.lineTo(x, y));
+      doc.closePath().fill("#DAA520");
+    };
+    star(cx, sealY, 22, 10, 5);
+    doc.circle(cx, sealY, 5).fill("#fffdf0");
+
+    // ── CERTIFICATE heading ──────────────────────────────
     doc
-      .fillColor("#7B5E19")
-      .fontSize(28)
+      .fillColor("#6B4C11")
+      .fontSize(30)
       .font("Helvetica-Bold")
-      .text("CERTIFICATE", 0, 158, { align: "center", characterSpacing: 7 });
+      .text("CERTIFICATE", 0, 134, { align: "center", characterSpacing: 8 });
+
     doc
       .fillColor("#A07B2A")
       .fontSize(11)
       .font("Helvetica")
-      .text("OF  APPRECIATION", 0, 190, {
+      .text("OF  APPRECIATION", 0, 168, {
         align: "center",
         characterSpacing: 6,
       });
 
-    // ── Divider with diamond ────────────────────────────
-    const divY = 210;
+    // ── Divider with diamond ─────────────────────────────
+    const dY = 190;
     doc
-      .moveTo(200, divY)
-      .lineTo(374, divY)
+      .moveTo(180, dY)
+      .lineTo(cx - 16, dY)
       .lineWidth(0.8)
       .strokeColor("#C9A84C")
       .stroke();
     doc
-      .moveTo(466, divY)
-      .lineTo(640, divY)
+      .moveTo(cx + 16, dY)
+      .lineTo(W - 180, dY)
       .lineWidth(0.8)
       .strokeColor("#C9A84C")
       .stroke();
     doc
       .save()
-      .translate(cx, divY)
+      .translate(cx, dY)
       .rotate(45)
-      .rect(-5.5, -5.5, 11, 11)
+      .rect(-6, -6, 12, 12)
       .fill("#DAA520")
       .restore();
 
-    // ── Subtitle ────────────────────────────────────────
+    // ── Presented to ─────────────────────────────────────
     doc
-      .fillColor("#888888")
-      .fontSize(12)
+      .fillColor("#999999")
+      .fontSize(11)
       .font("Helvetica")
-      .text("This certificate is proudly presented to", 0, 228, {
+      .text("This certificate is proudly presented to", 0, 208, {
         align: "center",
-        characterSpacing: 1,
+        characterSpacing: 2,
       });
 
-    // ── Student Name ────────────────────────────────────
+    // ── Student Name ─────────────────────────────────────
     doc
       .fillColor("#B8860B")
-      .fontSize(44)
+      .fontSize(46)
       .font("Helvetica-BoldOblique")
-      .text(studentName, 0, 260, { align: "center", characterSpacing: 2 });
+      .text(studentName, 0, 232, { align: "center", characterSpacing: 2 });
 
+    // name underline with diamonds
+    const nUY = 288;
     doc
-      .moveTo(170, 315)
-      .lineTo(670, 315)
-      .lineWidth(0.8)
+      .moveTo(160, nUY)
+      .lineTo(cx - 12, nUY)
+      .lineWidth(1)
+      .strokeColor("#DAA520")
+      .stroke();
+    doc
+      .moveTo(cx + 12, nUY)
+      .lineTo(W - 160, nUY)
+      .lineWidth(1)
       .strokeColor("#DAA520")
       .stroke();
     doc
       .save()
-      .translate(cx, 315)
+      .translate(cx, nUY)
       .rotate(45)
-      .rect(-4, -4, 8, 8)
+      .rect(-5, -5, 10, 10)
       .fill("#C9A84C")
       .restore();
 
-    // ── Subject ─────────────────────────────────────────
+    // ── Subject lines ─────────────────────────────────────
     doc
       .fillColor("#666666")
       .fontSize(13)
       .font("Helvetica")
-      .text("For successfully completing the", 0, 332, { align: "center" });
-    doc
-      .fillColor("#7B5E19")
-      .fontSize(17)
-      .font("Helvetica-Bold")
-      .text(subject, 0, 352, { align: "center", characterSpacing: 1.5 });
-    doc
-      .fillColor("#666666")
-      .fontSize(13)
-      .font("Helvetica")
-      .text("test with outstanding excellence.", 0, 374, { align: "center" });
+      .text("For successfully completing the", 0, 306, { align: "center" });
 
-    // ── Quote ───────────────────────────────────────────
+    doc
+      .fillColor("#6B4C11")
+      .fontSize(18)
+      .font("Helvetica-Bold")
+      .text(subject.toUpperCase(), 0, 326, {
+        align: "center",
+        characterSpacing: 2,
+      });
+
+    doc
+      .fillColor("#666666")
+      .fontSize(13)
+      .font("Helvetica")
+      .text("test with outstanding excellence.", 0, 350, { align: "center" });
+
+    // ── Quote ─────────────────────────────────────────────
     doc
       .fillColor("#bbbbbb")
       .fontSize(11)
       .font("Helvetica-Oblique")
       .text(
         '"Your dedication and passion for learning are truly inspiring!"',
-        0,
-        405,
-        { align: "center" },
+        100,
+        378,
+        { align: "center", width: W - 200 },
       );
 
-    // ── Bottom divider ───────────────────────────────────
+    // ── Full-width divider ────────────────────────────────
     doc
-      .moveTo(90, 426)
-      .lineTo(W - 90, 426)
-      .lineWidth(0.5)
-      .strokeColor("#DAA520")
-      .stroke();
-
-    // ── LEFT: EDU NOVA Signature ─────────────────────────
-    doc
-      .fillColor("#B8860B")
-      .fontSize(20)
-      .font("Helvetica-BoldOblique")
-      .text("Edu Nova", 90, 444, { width: 180, align: "center" });
-    // Stylized underline swoosh
-    doc
-      .moveTo(100, 468)
-      .bezierCurveTo(140, 462, 200, 470, 270, 465)
-      .lineWidth(1.5)
-      .strokeColor("#B8860B")
-      .stroke();
-    doc
-      .moveTo(100, 472)
-      .lineTo(270, 472)
+      .moveTo(80, 406)
+      .lineTo(W - 80, 406)
       .lineWidth(0.6)
       .strokeColor("#C9A84C")
       .stroke();
+
+    // ── Bottom section: 3 columns ─────────────────────────
+    // column positions
+    const col1cx = W * 0.22; // signature center
+    const col3cx = W * 0.78; // date center
+    const colW = 190;
+    const botY = 422;
+
+    // LEFT — EDU NOVA Signature
+    doc
+      .fillColor("#B8860B")
+      .fontSize(22)
+      .font("Helvetica-BoldOblique")
+      .text("Edu Nova", col1cx - colW / 2, botY, {
+        width: colW,
+        align: "center",
+      });
+
+    // swoosh underline
+    doc
+      .moveTo(col1cx - 80, botY + 30)
+      .bezierCurveTo(
+        col1cx - 40,
+        botY + 22,
+        col1cx + 40,
+        botY + 32,
+        col1cx + 80,
+        botY + 24,
+      )
+      .lineWidth(1.5)
+      .strokeColor("#B8860B")
+      .stroke();
+
+    doc
+      .moveTo(col1cx - 80, botY + 36)
+      .lineTo(col1cx + 80, botY + 36)
+      .lineWidth(0.6)
+      .strokeColor("#C9A84C")
+      .stroke();
+
     doc
       .fillColor("#888888")
-      .fontSize(9)
-      .font("Helvetica")
-      .text("AUTHORIZED SIGNATORY", 90, 476, {
-        width: 180,
-        align: "center",
-        characterSpacing: 0.5,
-      });
-    doc
-      .fillColor("#aaaaaa")
       .fontSize(8.5)
       .font("Helvetica")
-      .text("EDU NOVA — Director", 90, 488, { width: 180, align: "center" });
-
-    // ── CENTER: Round Seal ───────────────────────────────
-    doc.circle(cx, 458, 26).lineWidth(1.5).fillAndStroke("#fdf6e0", "#DAA520");
-    doc.circle(cx, 458, 20).lineWidth(0.5).fillAndStroke("#fffef5", "#C9A84C");
-    doc
-      .fillColor("#B8860B")
-      .fontSize(8)
-      .font("Helvetica-Bold")
-      .text("EDU", cx - 10, 450, {
-        width: 20,
-        align: "center",
-        characterSpacing: 0.5,
-      });
-    doc
-      .fillColor("#B8860B")
-      .fontSize(8)
-      .font("Helvetica-Bold")
-      .text("NOVA", cx - 12, 460, {
-        width: 24,
-        align: "center",
-        characterSpacing: 0.5,
-      });
-
-    // ── RIGHT: Date ──────────────────────────────────────
-    doc
-      .fillColor("#888888")
-      .fontSize(9.5)
-      .font("Helvetica")
-      .text("DATE OF ISSUE", 410, 440, {
-        width: 180,
+      .text("AUTHORIZED SIGNATORY", col1cx - colW / 2, botY + 42, {
+        width: colW,
         align: "center",
         characterSpacing: 1,
       });
     doc
-      .fillColor("#7B5E19")
+      .fillColor("#aaaaaa")
+      .fontSize(8)
+      .font("Helvetica")
+      .text("EDU NOVA — Director", col1cx - colW / 2, botY + 54, {
+        width: colW,
+        align: "center",
+      });
+
+    // CENTER — Wax Seal
+    const wY = botY + 28;
+    doc.circle(cx, wY, 28).lineWidth(1.5).fillAndStroke("#fdf3c8", "#DAA520");
+    doc.circle(cx, wY, 22).lineWidth(0.5).fillAndStroke("#fffdf0", "#C9A84C");
+    star(cx, wY - 6, 12, 5, 5);
+    doc
+      .fillColor("#B8860B")
+      .fontSize(7)
+      .font("Helvetica-Bold")
+      .text("EDU", cx - 12, wY + 2, {
+        width: 24,
+        align: "center",
+        characterSpacing: 1,
+      });
+    doc
+      .fillColor("#B8860B")
+      .fontSize(7)
+      .font("Helvetica-Bold")
+      .text("NOVA", cx - 14, wY + 12, {
+        width: 28,
+        align: "center",
+        characterSpacing: 1,
+      });
+
+    // RIGHT — Date
+    doc
+      .fillColor("#6B4C11")
       .fontSize(14)
       .font("Helvetica-Bold")
-      .text(currentDate, 410, 455, { width: 180, align: "center" });
+      .text(currentDate, col3cx - colW / 2, botY + 10, {
+        width: colW,
+        align: "center",
+      });
+
     doc
-      .moveTo(415, 474)
-      .lineTo(590, 474)
-      .lineWidth(0.6)
+      .moveTo(col3cx - 80, botY + 36)
+      .lineTo(col3cx + 80, botY + 36)
+      .lineWidth(0.8)
       .strokeColor("#C9A84C")
       .stroke();
+
     doc
-      .fillColor("#aaaaaa")
+      .fillColor("#888888")
       .fontSize(8.5)
       .font("Helvetica")
-      .text("EDU NOVA — Institute", 410, 478, { width: 180, align: "center" });
+      .text("DATE OF ISSUE", col3cx - colW / 2, botY + 42, {
+        width: colW,
+        align: "center",
+        characterSpacing: 1,
+      });
+    doc
+      .fillColor("#aaaaaa")
+      .fontSize(8)
+      .font("Helvetica")
+      .text("EDU NOVA — Institute", col3cx - colW / 2, botY + 54, {
+        width: colW,
+        align: "center",
+      });
 
-    // ── Footer text ──────────────────────────────────────
+    // ── Footer ────────────────────────────────────────────
     doc
       .fillColor("#cccccc")
       .fontSize(8)
       .font("Helvetica")
-      .text("EDU NOVA  •  EXCELLENCE IN EDUCATION  •  eduNova.com", 0, H - 22, {
+      .text("EDU NOVA  •  EXCELLENCE IN EDUCATION  •  eduNova.com", 0, H - 24, {
         align: "center",
-        characterSpacing: 1.5,
+        characterSpacing: 2,
       });
 
     doc.end();
