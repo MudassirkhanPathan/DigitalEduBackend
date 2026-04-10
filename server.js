@@ -9,7 +9,10 @@ const app = express();
 // middleware
 app.use(
   cors({
-    origin: "https://digital-edu-frontend.vercel.app","https://digital-edu-frontend-r5mhfltb4-mudassir-khan-s-projects.vercel.app",
+    origin: [
+      "https://digital-edu-frontend.vercel.app",
+      "https://digital-edu-frontend-r5mhfltb4-mudassir-khan-s-projects.vercel.app",
+    ],
     credentials: true,
   }),
 );
