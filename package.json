@@ -19,7 +19,7 @@
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.14.2",
-    "openai": "^5.19.1",
+    "openai": "^5.23.2",
     "pdfkit": "^0.17.2",
     "puppeteer": "^24.19.0",
     "puppeteer-core": "^24.40.0",
