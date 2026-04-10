@@ -1,4 +1,5 @@
-const puppeteer = require("puppeteer");
+const puppeteer = require("puppeteer-core");
+const chromium = require("@sparticuz/chromium");
 const path = require("path");
 const fs = require("fs");
 
@@ -20,7 +21,7 @@ const generateCertificate = async (req, res) => {
   const filePath = path.join(dir, fileName);
 
   // HTML Template
-const htmlContent = `
+  const htmlContent = `
 <html>
   <head>
     <style>
@@ -144,8 +145,10 @@ const htmlContent = `
 
   try {
     const browser = await puppeteer.launch({
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
-      headless: true,
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath(),
+      headless: chromium.headless,
     });
     const page = await browser.newPage();
 
