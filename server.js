@@ -10,6 +10,7 @@ const app = express();
 app.use(
   cors({
     origin: [
+      "http://localhost:3000", 
       "https://digital-edu-frontend.vercel.app",
       "https://digital-edu-frontend-r5mhfltb4-mudassir-khan-s-projects.vercel.app",
     ],
